@@ -110,6 +110,8 @@ mod scope;
 #[cfg(feature = "tracy")]
 mod tracy;
 
+#[cfg(feature = "tracy")]
+pub use tracy::create_tracy_gpu_client;
 pub use errors::{CreationError, EndFrameError, SettingsError};
 pub use profiler::GpuProfiler;
 pub use profiler_command_recorder::ProfilerCommandRecorder;

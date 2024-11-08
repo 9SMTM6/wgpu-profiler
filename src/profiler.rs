@@ -95,6 +95,17 @@ impl GpuProfiler {
         Ok(profiler)
     }
 
+        /// TODO
+        #[cfg(feature = "tracy")]
+        pub fn new_with_tracy_client_v2(
+            settings: GpuProfilerSettings,
+            gpu_context: tracy_client::GpuContext,
+        ) -> Result<Self, CreationError> {
+            let mut profiler = Self::new(settings)?;
+            profiler.tracy_context = Some(gpu_context);
+            Ok(profiler)
+        }
+
     /// Changes the settings of an existing profiler.
     ///
     /// If timer scopes are disabled by setting [`GpuProfilerSettings::enable_timer_queries`] to false,
