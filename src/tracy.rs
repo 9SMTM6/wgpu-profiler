@@ -1,6 +1,6 @@
 use crate::CreationError;
 
-pub fn create_tracy_gpu_client(
+pub (crate) fn create_tracy_gpu_client(
     backend: wgpu::Backend,
     device: &wgpu::Device,
     queue: &wgpu::Queue,

@@ -36,7 +36,8 @@ pub struct GpuProfiler {
     settings: GpuProfilerSettings,
 
     #[cfg(feature = "tracy")]
-    tracy_context: Option<tracy_client::GpuContext>,
+    // could also clone context instead. Its not that big.
+    tracy_context: Option<Arc<tracy_client::GpuContext>>,
 }
 
 // Public interface
@@ -89,22 +90,31 @@ impl GpuProfiler {
         queue: &wgpu::Queue,
     ) -> Result<Self, CreationError> {
         let mut profiler = Self::new(settings)?;
-        profiler.tracy_context = Some(crate::tracy::create_tracy_gpu_client(
-            backend, device, queue,
-        )?);
+        profiler.tracy_context = Some(Self::create_tracy_context(backend, device, queue)?);
         Ok(profiler)
     }
 
-        /// TODO
-        #[cfg(feature = "tracy")]
-        pub fn new_with_tracy_client_v2(
-            settings: GpuProfilerSettings,
-            gpu_context: tracy_client::GpuContext,
-        ) -> Result<Self, CreationError> {
-            let mut profiler = Self::new(settings)?;
-            profiler.tracy_context = Some(gpu_context);
-            Ok(profiler)
-        }
+    /// Creates a new profiler and uses an externally provided Tracy GPU context.
+    #[cfg(feature = "tracy")]
+    pub fn new_with_shared_tracy_context(
+        settings: GpuProfilerSettings,
+        tracy_context: Arc<tracy_client::GpuContext>,
+    ) -> Result<Self, CreationError> {
+        let mut profiler = Self::new(settings)?;
+        profiler.tracy_context = Some(tracy_context);
+        Ok(profiler)
+    }
+
+    /// Create a Tracy GPU context for shared use.
+    #[cfg(feature = "tracy")]
+    pub fn create_tracy_context(
+        backend: wgpu::Backend,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+    ) -> Result<Arc<tracy_client::GpuContext>, CreationError> {
+        // Directly return the result from create_tracy_gpu_client, wrapped in Arc.
+        crate::tracy::create_tracy_gpu_client(backend, device, queue).map(Arc::new)
+    }
 
     /// Changes the settings of an existing profiler.
     ///
